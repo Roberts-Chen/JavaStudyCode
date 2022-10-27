@@ -1,6 +1,9 @@
 package ThreadStudy;
 
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Condition;
@@ -51,6 +54,15 @@ public class ThreadDemo {
             d.join();
             System.out.println();
         }
+
+
+
+
+        List<Integer> list = new ArrayList<>();
+        System.out.println(ArrayList.class.getClassLoader());
+        System.out.println(String.class.getClassLoader());
+        System.out.println(ThreadDemo.class.getClassLoader());
+        System.out.println(Date.class.getClassLoader());
     }
 
     class ThreadD implements Runnable {

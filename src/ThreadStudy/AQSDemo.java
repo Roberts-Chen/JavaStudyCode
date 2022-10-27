@@ -658,6 +658,11 @@
 //         * just the next node.  But if cancelled or apparently null,
 //         * traverse backwards from tail to find the actual
 //         * non-cancelled successor.
+//         *
+//         * 寻找需要unpark的结点，一般情况下如果当前节点的后置结点的状态是非CANCELLED(1)的话
+//         * 那么就unpark后置结点，如果后置结点的状态是CANCELLED(1)，那么就需要从后向前遍历找到
+//         * 非CANCELLED(1)状态的结点。
+//         *
 //         */
 //        Node s = node.next;
 //        if (s == null || s.waitStatus > 0) {
@@ -667,6 +672,7 @@
 //                    s = t;
 //        }
 //        if (s != null)
+//            // 调用Native方法进行unpark
 //            LockSupport.unpark(s.thread);
 //    }
 //
@@ -804,7 +810,8 @@
 //        int ws = pred.waitStatus;
 //        if (ws == Node.SIGNAL)
 //            /*
-//             * 前置节点也在等待获取锁，所以当前线程可以挂起
+//             * 前置节点的状态已经设置为SIGNAL，当前置节点被release时将会唤醒当前线程，所以
+//             * 当前线程可以被park
 //             * This node has already set status asking a release
 //             * to signal it, so it can safely park.
 //             */
@@ -813,13 +820,16 @@
 //            /*
 //             * Predecessor was cancelled. Skip over predecessors and
 //             * indicate retry.
+//             * 从当前node节点向前遍历，找到状态正常的结点，并将node作为其后置结点
 //             */
-//            do {// 删除前面所有waitStatus为CANCEL的Node
+//            do {
 //                node.prev = pred = pred.prev;
 //            } while (pred.waitStatus > 0);
 //            pred.next = node;
 //        } else {
 //            /*
+//             * 如果前驱结点正常，那就把前驱结点的waitStatus状态设置为SIGNAL
+//             * 这样前驱结点在运行完unlock或者release之后将会轮到该结点获取资源
 //             * 将前置节点的waitStatus置为SINGLE，以方便其获取锁
 //             * 调用者需要重试以保证在当前节点在挂起之前无法获取锁
 //             * waitStatus must be 0 or PROPAGATE.  Indicate that we
@@ -1278,6 +1288,7 @@
 //    public final boolean release(int arg) {
 //        if (tryRelease(arg)) {
 //            Node h = head;
+//            // 头结点不为空且其不为新入队的结点，就唤醒后面的结点
 //            if (h != null && h.waitStatus != 0)
 //                unparkSuccessor(h);
 //            return true;
