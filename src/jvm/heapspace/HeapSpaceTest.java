@@ -28,4 +28,10 @@ public class HeapSpaceTest extends Object implements Comparable<String>, Seriali
     public int compareTo(String o) {
         return 0;
     }
+
+    public static void main(String[] args) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("sss");
+        System.out.println(builder.reverse());
+    }
 }
